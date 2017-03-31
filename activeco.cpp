@@ -151,11 +151,8 @@ int main(int argc, char **argv) {
     //std::cerr << "Fallo al inicializar VPAR." << std::endl;
   }
 
-  // salida calado
   //const std::string videoStreamAddress = "rtsp://admin:c3b4d4@192.168.1.32";
-  // barrera pv5
-  // const std::string videoStreamAddress = "rtsp://admin:v1s1b1l1d4d@192.168.1.50";
-  //prefectura
+  //const std::string videoStreamAddress = "rtsp://admin:v1s1b1l1d4d@192.168.1.50";
   pointName = argv[1];
 
 
