@@ -17,15 +17,19 @@ $(shell mkdir -p $(DEPDIR) > /dev/null)
 
 DEPFLAGS=-MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 
+#deshabilito la regla implicita de make
+%.o: %.cpp
+
+#defino la regla propia
+%.o : %.cpp $(DEPDIR)/%.d
+	$(GCC) $(DEPFLAGS) -c $(CC_FLAGS) $< -o $@
+	mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d
+
 .phony: all
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
 	$(GCC) $(LD_FLAGS) $^ -o $(TARGET)
-
-%.o : %.cpp $(DEPDIR)/%.d
-	$(GCC) $(DEPFLAGS) -c $(CC_FLAGS) $< -o $@
-	mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d
 
 .phony: clean
 clean:
@@ -34,7 +38,8 @@ clean:
 
 $(DEPDIR)/%.d: ;
 
-#.PRECIOUS: $(DEPDIR)/%.d
+.PRECIOUS: $(DEPDIR)/%.d
+
 #@echo $(wildcard $(patsubst %,$(DEPDIR)/%.d,$(basename $(SRCS))))
 
 include $(wildcard $(DEPDIR)/*.d)
