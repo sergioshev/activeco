@@ -54,4 +54,18 @@ class logLevelFactory : public abstractFactory {
     logLevelFactory(const po::variables_map & evm) : abstractFactory(evm) {};
     void* produce();
 };
+
+class logFileFactory: public abstractFactory {
+  public:
+    logFileFactory (const po::variables_map & evm) : abstractFactory(evm) {};
+};
+
+class pointNameFactory : public abstractFactory {
+  public:
+    pointNameFactory(const po::variables_map & evm) : abstractFactory(evm) {};
+    void* produce();
+
+};
+
+
 #endif

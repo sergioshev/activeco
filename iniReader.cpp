@@ -143,3 +143,10 @@ void* logLevelFactory::produce() {
   *pLogLevel = logLevelToSwitch.at(logLevelStr.c_str());
   return pLogLevel;
 }
+
+
+void* pointNameFactory::produce() {
+  std::string *ppointName = new std::string;
+  *ppointName = this->vm["camera.pointName"].as<std::string>();
+  return ppointName;
+}
