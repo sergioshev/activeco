@@ -64,7 +64,6 @@ class pointNameFactory : public abstractFactory {
   public:
     pointNameFactory(const po::variables_map & evm) : abstractFactory(evm) {};
     void* produce();
-
 };
 
 
