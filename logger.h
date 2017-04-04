@@ -36,7 +36,9 @@ class cLogger {
       this->__isOpen = this->__logfile.is_open();
       if (!this->__isOpen) {
         std::cerr << "ERROR opening : " << fileName << std::endl;
+        return false;
       }
+      return true;
     }
 
     std::string __levelStr(int level) {
