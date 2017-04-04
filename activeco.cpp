@@ -120,14 +120,18 @@ int main(int argc, char **argv) {
 
   po::variables_map & ivm = *ir.getMap();
   logLevelFactory logLevelF(ivm);
+  pointNameFactory pointNameF(ivm);
 
   int* logLevel = (int*)logLevelF.produce();
+  std::string *pointName = (std::string *)pointNameF.produce();
+
   std::cout << "Loglevel final = " << *logLevel << std::endl;
+  std::cout << "Point name = " << *pointName << std::endl;
   delete (logLevel);
+  delete (pointName);
   return 0;
 
 // Iniciando la aplicacion
-  char *pointName;
 
   logger.setLogLevel(*logLevel);
 
@@ -153,8 +157,6 @@ int main(int argc, char **argv) {
 
   //const std::string videoStreamAddress = "rtsp://admin:c3b4d4@192.168.1.32";
   //const std::string videoStreamAddress = "rtsp://admin:v1s1b1l1d4d@192.168.1.50";
-  pointName = argv[1];
-
 
   std::string videoStreamAddress;
   const std::string prefectura = "rtsp://admin:c3b4d4@192.168.1.31";
@@ -169,51 +171,11 @@ int main(int argc, char **argv) {
 
   px=py=width=20;
 
-  if ( strcmp(pointName, "CALADO") == 0 ) {
-    std::cout << "CALADO seteado" << std::endl;
     videoStreamAddress=calado;
     logger.setLoggerName(std::string("CALADO"));
     px=500;
     py=400;
     width=30;
-  } 
-
-  if ( strcmp(pointName, "PREFECTU") == 0 ) {
-    std::cout << "PREFECTURA seteado" << std::endl;
-    videoStreamAddress=prefectura;
-    logger.setLoggerName(std::string("PREFECT"));
-    px=870;
-    py=260;
-    width=30;
-  } 
-
-  if ( strcmp(pointName, "BRUTO") == 0 ) {
-    std::cout << "BRUTO seteado" << std::endl;
-    videoStreamAddress=bruto;
-    logger.setLoggerName(std::string("BRUTO"));
-    px=870;
-    py=260;
-    width=80;
-  } 
-
-  if ( strcmp(pointName, "PV5I") == 0 ) {
-    std::cout << "PV5I seteado" << std::endl;
-    videoStreamAddress=pv5i;
-    logger.setLoggerName(std::string("PV5I"));
-    px=700;
-    py=450;
-    width=30;
-  } 
-
-  if ( strcmp(pointName, "PV5D") == 0 ) {
-    std::cout << "PV5D seteado" << std::endl;
-    videoStreamAddress=pv5d;
-    logger.setLoggerName(std::string("PV5D"));
-    px=760;
-    py=480;
-    width=30;
-  } 
-
 
   //Cola de frames que son resibidos de los observadores.
   //Sirve como canal entre vpar y el flujo de frames listos para analizarse.
@@ -230,11 +192,8 @@ int main(int argc, char **argv) {
   //Despachador de frames a los observadores registrados
   cFrameDispatcher<cFrameObserver> frameDispatcher;
 
-  if ( strcmp(pointName, "BRUTO") == 0 ) {
-    frameDispatcher.addObserver(&chronoObserver);
-  } else {
-    frameDispatcher.addObserver(&moveObserver);
-  }
+  //frameDispatcher.addObserver(&chronoObserver);
+  frameDispatcher.addObserver(&moveObserver);
 
   //El lector del flujo de frames propiamente dicho.
   //Esta clase ejecuta la funcion "callback" por cada
@@ -255,7 +214,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  std::thread th(queuedFramesConsumer, &framesQueue, pvpar, std::string(pointName));
+  std::thread th(queuedFramesConsumer, &framesQueue, pvpar, *pointName);
 
 
   while (queuedFramesConsumerRun) {
