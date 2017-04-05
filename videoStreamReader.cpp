@@ -62,7 +62,7 @@ void cvStreamReader::__pollFrames() {
     avformat_close_input(&formatCtx);    
     return;
   }
-  for (auto j=0 ; j<formatCtx->nb_streams ; j++) {
+  for (unsigned int j=0 ; j<formatCtx->nb_streams ; j++) {
     if (formatCtx->streams[j]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
       videoStreamIndex = j;
       break;

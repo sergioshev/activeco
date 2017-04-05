@@ -38,6 +38,8 @@ class iniReader {
     int getLogLevel();
 };
 
+//productores de elementos del ini
+
 class abstractFactory {
   protected:
     const po::variables_map & vm;
@@ -55,9 +57,10 @@ class logLevelFactory : public abstractFactory {
     void* produce();
 };
 
-class logFileFactory: public abstractFactory {
+class logFileFactory : public abstractFactory {
   public:
     logFileFactory (const po::variables_map & evm) : abstractFactory(evm) {};
+    void* produce();
 };
 
 class pointNameFactory : public abstractFactory {
@@ -66,5 +69,22 @@ class pointNameFactory : public abstractFactory {
     void* produce();
 };
 
+class urlFactory : public abstractFactory {
+  public:
+    urlFactory(const po::variables_map & evm) : abstractFactory(evm) {};
+    void* produce();
+};
+
+class chronoObserverFactory : public abstractFactory {
+  public:
+    chronoObserverFactory(const po::variables_map & evm) : abstractFactory(evm) {};
+    void* produce();
+};
+
+class moveObserverFactory : public abstractFactory {
+  public:
+    moveObserverFactory(const po::variables_map & evm) : abstractFactory(evm) {};
+    void* produce();
+};
 
 #endif

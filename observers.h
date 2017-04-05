@@ -31,6 +31,9 @@ class cFrameObserver {
     cThreadSafeQueue<cv::Mat>* queue;
 
   public:
+    virtual ~cFrameObserver() {};
+    //el metodo de notificacion de un frame listo a ser observado
+    //los frames son recibidos desde el flujo de video
     virtual void notify(cv::Mat frame)=0;
     virtual int isReady()=0;
     void setQueue(cThreadSafeQueue<cv::Mat>* q) {

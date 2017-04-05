@@ -1,6 +1,7 @@
 #include <memory>
 #include "iniReader.h"
 #include "logger.h"
+#include "observers.h"
 
 void iniReader::buildStructureDescription() {
   this->piniStructureDescription = new(po::options_description);
@@ -24,7 +25,7 @@ void iniReader::buildStructureDescription() {
       "url para definir la conexion rtsp")
     ("camera.pointName", po::value<std::string>(),
       "Nombre del puesto de control")
-    /* observadores = [ moveObserver | chronoObserver ] ... */
+    /* observadores = [ moveObserver | chronoObserver ] ... */ 
     ("camera.observers", po::value<std::vector<std::string>>(),
       "lista de los observadores de frames")
     /* dumpers = [ dumper2Db | dumper2File ] ... */
@@ -34,6 +35,7 @@ void iniReader::buildStructureDescription() {
     ("moveObserver.pointX", po::value<int>(),"x del ROI")
     ("moveObserver.pointY", po::value<int>(),"y del ROI")
     ("moveObserver.width", po::value<int>(),"ancho del ROI")
+    ("moveObserver.height", po::value<int>(),"alto del ROI")
     /*chronoObserver*/
     ("chronoObserver.timeout", po::value<int>()->default_value(10),
       "tiempo de espera en segundos para tomar el frame")
@@ -107,32 +109,55 @@ po::variables_map* iniReader::getMap() {
   return this->piniValuesMap;
 }
 
-
+//validacion basica, solo chequea la presencia de los valores
+//obligatorios
+//la semantica de los datos esta delegada a los productores
 bool iniReader::validateValues() {
+  //TODO: no salir si existe un valor por 
   po::variables_map & ivm = *this->piniValuesMap;
   //logLevel
   if (!ivm.count("global.logFile")) {
     this->lastError = "No esta definida la variable logFile";
-    return false;
+//    return false;
   }
   if (!ivm.count("global.logLevel")) {
     this->lastError = "No esta definida la variable logLevel";
-    return false;
+//    return false;
   } else {
     std::string logLevelStr = ivm["global.logLevel"].as<std::string>();
     for (auto & c : logLevelStr) {
       c = toupper(c);
     }
     try {
-      int j = logLevelToSwitch.at(logLevelStr.c_str());
+      logLevelToSwitch.at(logLevelStr.c_str());
+      //int j = logLevelToSwitch.at(logLevelStr.c_str());
     } catch (std::exception & e) {
       this->lastError = "La variable logLevel tiene un valor desconocido";
       return false;
     }
-  }   
+  }
+  if (!ivm.count("camera.pointName")) {
+    this->lastError = "No esta definida la variable pointName";
+    return false;
+  }
+  if (!ivm.count("camera.url")) {
+    this->lastError = "No esta definida la variable url";
+    return false;
+  }
+  if (!ivm.count("camera.observers")) {
+    this->lastError = "No estan definidos los observadores";
+    return false;
+  }
+  if (!ivm.count("camera.dumpers")) {
+    this->lastError = "No estan definidos los volcadores (dumpers)";
+    return false;
+  }
+  
   return true; 
 }
 
+
+//productores de lo elementos
 void* logLevelFactory::produce() {
   std::string logLevelStr = this->vm["global.logLevel"].as<std::string>();
   int* pLogLevel= new(int);
@@ -144,9 +169,77 @@ void* logLevelFactory::produce() {
   return pLogLevel;
 }
 
-
 void* pointNameFactory::produce() {
   std::string *ppointName = new std::string;
   *ppointName = this->vm["camera.pointName"].as<std::string>();
   return ppointName;
+}
+
+void* logFileFactory::produce() {
+  std::string *logFile = new std::string;
+  *logFile = this->vm["global.logFile"].as<std::string>();
+  return logFile;
+}
+
+void* urlFactory::produce() {
+  std::string *url = new std::string;
+  *url = this->vm["camera.url"].as<std::string>();
+  return url;
+}
+
+void* chronoObserverFactory::produce() {
+  cChronoObserver* pobs=NULL;
+  const po::variables_map & vm = this->vm;
+  std::vector<std::string> obs = vm["camera.observers"].as<std::vector<std::string>>();
+  bool isPresent = false;
+
+  for (const auto & it : obs) {
+    if (it.compare(std::string("chronoObserver")) == 0) {
+      isPresent = true;
+      break;
+    }
+  }
+  if (! isPresent) {
+    return NULL;
+  }
+  if (!vm.count("chronoObserver.timeout")) {
+    return NULL;
+  }
+  int timeout = vm["chronoObserver.timeout"].as<int>();
+  if (timeout < 0) {
+    return NULL;
+  }
+  pobs = new cChronoObserver(timeout);
+  return pobs;
+}
+
+
+void* moveObserverFactory::produce() {
+  cMoveObserver* pobs=NULL;
+  const po::variables_map & vm = this->vm;
+  std::vector<std::string> obs = vm["camera.observers"].as<std::vector<std::string>>();
+  bool isPresent = false;
+
+  for (const auto & it : obs) {
+    if (it.compare(std::string("moveObserver")) == 0) {
+      isPresent = true;
+      break;
+    }
+  }
+  if (! isPresent) {
+    return NULL;
+  }
+  if (!vm.count("moveObserver.pointX") ||
+      !vm.count("moveObserver.pointY") ||
+      !vm.count("moveObserver.width") ||
+      !vm.count("moveObserver.height")) {
+    return NULL;
+  }
+  int pointX = vm["moveObserver.pointX"].as<int>();
+  int pointY = vm["moveObserver.pointY"].as<int>();
+  int width = vm["moveObserver.width"].as<int>();
+  int height = vm["moveObserver.height"].as<int>();
+
+  pobs = new cMoveObserver(pointX, pointY, width, height);
+  return pobs;
 }

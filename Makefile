@@ -41,5 +41,4 @@ $(DEPDIR)/%.d: ;
 .PRECIOUS: $(DEPDIR)/%.d
 
 #@echo $(wildcard $(patsubst %,$(DEPDIR)/%.d,$(basename $(SRCS))))
-
 include $(wildcard $(DEPDIR)/*.d)

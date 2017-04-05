@@ -43,7 +43,6 @@ void frameReadyCallback(cv::Mat frame, void* ptr) {
 
 void queuedFramesConsumer(cThreadSafeQueue<cv::Mat>* queue, clibVpar* pvpar, std::string pointName ) {
   cv::Mat frame;
-  int j;
   long numberOfPlates;
   long res;
   char plateText[100];
@@ -119,16 +118,35 @@ int main(int argc, char **argv) {
   }
 
   po::variables_map & ivm = *ir.getMap();
+
   logLevelFactory logLevelF(ivm);
+  logFileFactory logFileF(ivm);
   pointNameFactory pointNameF(ivm);
+  urlFactory urlF(ivm);
+  chronoObserverFactory chronoF(ivm);
+  moveObserverFactory moveObsF(ivm);
 
   int* logLevel = (int*)logLevelF.produce();
-  std::string *pointName = (std::string *)pointNameF.produce();
+  std::string* logFile = (std::string *)logFileF.produce();
+  std::string* pointName = (std::string *)pointNameF.produce();
+  std::string* url = (std::string*)urlF.produce();
+  cChronoObserver* chronoObs = (cChronoObserver*)chronoF.produce();
+  cMoveObserver* moveObs = (cMoveObserver*)moveObsF.produce();
 
-  std::cout << "Loglevel final = " << *logLevel << std::endl;
+  std::cout << "Logfile = " << *logFile << std::endl;
+  std::cout << "Loglevel = " << *logLevel << std::endl;
   std::cout << "Point name = " << *pointName << std::endl;
-  delete (logLevel);
-  delete (pointName);
+  std::cout << "url = " << *url << std::endl;
+  delete(logFile);
+  delete(logLevel);
+  delete(pointName);
+  delete(url);
+  if (chronoObs) {
+    delete(chronoObs);
+  }
+  if (moveObs) {
+    delete(moveObs);
+  }
   return 0;
 
 // Iniciando la aplicacion
