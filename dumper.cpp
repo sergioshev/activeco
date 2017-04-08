@@ -16,7 +16,7 @@ dumper2Db::~dumper2Db() {
 
 void dumper2Db::dump(detectionData data) {
  
-std::string cConnect = "dbname=" + this->dbName + " user=activeco password=4ct1v3c0" +
+std::string cConnect = "dbname=" + this->dbName + " user=activeco password=xxxxx" +
                         " hostaddr=" + this->host + " port=" + this->port ;
  try{
     pqxx::connection C(cConnect);
