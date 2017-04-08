@@ -19,19 +19,10 @@ INIT_LOOGER
 #include "videoStreamReader.h"
 #include "vpmr.h"
 
-
 namespace po = boost::program_options;
 
 //bandera para cortar el bucle del thread consumidor de frames
 int queuedFramesConsumerRun = 1;
-
-void dumpFrame(detectionData d) {
-  LOG(INFO, "{dumpFrame} Patente reconocida ", d.plate, " con confianza ", d.confidence);
-  dumper2Db dbDumper("laridae", "192.168.1.6", "5433");
-  dumper2File fileDumper("/var/lib/activeco/patentes/");
-  dbDumper.dump(d);
-  fileDumper.dump(d);
-}
 
 void frameReadyCallback(cv::Mat frame, void* ptr) {
   if (ptr != NULL) {
@@ -41,7 +32,7 @@ void frameReadyCallback(cv::Mat frame, void* ptr) {
   }
 }
 
-void queuedFramesConsumer(cThreadSafeQueue<cv::Mat>* queue, clibVpar* pvpar, std::string pointName ) {
+void queuedFramesConsumer(cThreadSafeQueue<cv::Mat>* queue, clibVpar* pvpar, std::string pointName, std::vector<dumper*> dumpers ) {
   cv::Mat frame;
   long numberOfPlates;
   long res;
@@ -68,7 +59,10 @@ void queuedFramesConsumer(cThreadSafeQueue<cv::Mat>* queue, clibVpar* pvpar, std
           ddata.pointName = pointName;
           ddata.confidence = confidence;
           ddata.plate = plateText;
-          dumpFrame(ddata);
+          for (dumper* it : dumpers) {
+            it->dump(ddata);
+            LOG(INFO, "{dumpFrame} Patente reconocida ", ddata.plate, " con confianza ", ddata.confidence);
+          }
           //cv::imshow("TEST", frame);
         }
       } //if (numberOfPlates)
@@ -76,8 +70,24 @@ void queuedFramesConsumer(cThreadSafeQueue<cv::Mat>* queue, clibVpar* pvpar, std
   } // while
 }
 
-int main(int argc, char **argv) {
+/*
+ Funcion para liberar una lista de punteros.
+ recorre la lista llamando delete si el puntero
+ existe
+*/
+template<typename H>
+void freeVars(H p) {
+  p ? delete(p) : (void)0;
+}
 
+template <typename H, typename ...T>
+void freeVars(H h, T ...t) {
+  freeVars(h);
+  freeVars(t...);
+}
+
+
+int main(int argc, char **argv) {
   po::options_description args("Argumentos de linea de comando");
 
   args.add_options()
@@ -125,33 +135,24 @@ int main(int argc, char **argv) {
   urlFactory urlF(ivm);
   chronoObserverFactory chronoF(ivm);
   moveObserverFactory moveObsF(ivm);
+  dumper2DbFactory dumper2DbF(ivm);
+  dumper2FileFactory dumper2FileF(ivm);
 
   int* logLevel = (int*)logLevelF.produce();
   std::string* logFile = (std::string *)logFileF.produce();
   std::string* pointName = (std::string *)pointNameF.produce();
   std::string* url = (std::string*)urlF.produce();
+
   cChronoObserver* chronoObs = (cChronoObserver*)chronoF.produce();
   cMoveObserver* moveObs = (cMoveObserver*)moveObsF.produce();
-
-  std::cout << "Logfile = " << *logFile << std::endl;
-  std::cout << "Loglevel = " << *logLevel << std::endl;
-  std::cout << "Point name = " << *pointName << std::endl;
-  std::cout << "url = " << *url << std::endl;
-  delete(logFile);
-  delete(logLevel);
-  delete(pointName);
-  delete(url);
-  if (chronoObs) {
-    delete(chronoObs);
-  }
-  if (moveObs) {
-    delete(moveObs);
-  }
-  return 0;
+  dumper2Db* d2Db = (dumper2Db*)dumper2DbF.produce();
+  dumper2File* d2File = (dumper2File*)dumper2FileF.produce();
+  std::vector<dumper*> dumpers;
 
 // Iniciando la aplicacion
-
   logger.setLogLevel(*logLevel);
+  logger.setFileName(*logFile);
+  logger.setLoggerName(*pointName);
 
   clibVpar* pvpar;
 
@@ -161,64 +162,40 @@ int main(int argc, char **argv) {
   } catch (std::exception& e) {
     //e.what();
     LOG(ERROR, "Error inicializando la libreria vpar");
-    if ( pvpar != NULL ) {
-      delete(pvpar);
-    }
+    freeVars(pvpar, logFile, logLevel, pointName, url, chronoObs,
+      moveObs, d2Db, d2File);
     return 1;
   }
 
   long res = pvpar->vpmrInit(204, -1, false, false, 0, true);
   if (!res) {
     LOG(ERROR, "Error inicializando el motor de reconocimiento");
-    //std::cerr << "Fallo al inicializar VPAR." << std::endl;
   }
-
-  //const std::string videoStreamAddress = "rtsp://admin:c3b4d4@192.168.1.32";
-  //const std::string videoStreamAddress = "rtsp://admin:v1s1b1l1d4d@192.168.1.50";
-
-  std::string videoStreamAddress;
-  const std::string prefectura = "rtsp://admin:c3b4d4@192.168.1.31";
-  const std::string calado = "rtsp://admin:c3b4d4@192.168.1.32";
-  const std::string bruto = "rtsp://admin:c3b4d4@192.168.1.45";
-  const std::string pv5d = "rtsp://admin:v1s1b1l1d4d@192.168.1.50";
-  const std::string pv5i = "rtsp://admin:&c3b4d4%@192.168.1.61";
-
-  videoStreamAddress = calado;
-
-  int px,py,width;
-
-  px=py=width=20;
-
-    videoStreamAddress=calado;
-    logger.setLoggerName(std::string("CALADO"));
-    px=500;
-    py=400;
-    width=30;
 
   //Cola de frames que son resibidos de los observadores.
   //Sirve como canal entre vpar y el flujo de frames listos para analizarse.
   cThreadSafeQueue<cv::Mat> framesQueue;
 
-  //Observador cronometrado
-  cChronoObserver chronoObserver(10);
-  chronoObserver.setQueue(&framesQueue);
-
-  //Observador por Movimiento
-  cMoveObserver moveObserver(px, py, width, width);
-  moveObserver.setQueue(&framesQueue);
-
   //Despachador de frames a los observadores registrados
   cFrameDispatcher<cFrameObserver> frameDispatcher;
 
-  //frameDispatcher.addObserver(&chronoObserver);
-  frameDispatcher.addObserver(&moveObserver);
+  if (chronoObs) {
+    chronoObs->setQueue(&framesQueue);
+    frameDispatcher.addObserver(chronoObs);
+  }
+  if (moveObs) {
+    moveObs->setQueue(&framesQueue);
+    frameDispatcher.addObserver(moveObs);
+  }
+  if (d2Db) { dumpers.push_back(d2Db); }
+  if (d2File) { dumpers.push_back(d2File); }
 
   //El lector del flujo de frames propiamente dicho.
   //Esta clase ejecuta la funcion "callback" por cada
   //frame recibido desde la camara. Se setea el user
   //poiner con el framesDispacher que es pasado como 
   //parametro en el callback para depacharlo a los observadores
-  cvStreamReader sr(videoStreamAddress, frameReadyCallback);
+  cvStreamReader sr(*url, frameReadyCallback);
   sr.setUserPointer(&frameDispatcher);
 
   //cv::namedWindow("TEST", CV_WINDOW_AUTOSIZE); 
@@ -226,14 +203,13 @@ int main(int argc, char **argv) {
   try {
     sr.startCapture();
   } catch (std::exception e) {
-    //std::cerr << "No puedo arrancar la lectura" << e.what() << std::endl;
-    //LOG(ERROR, "Error iniciando la lectura ", e.what());
     LOG(ERROR, "Error iniciando la lectura ");
+    freeVars(pvpar, logFile, logLevel, pointName, url, chronoObs,
+      moveObs, d2Db, d2File);
     return 1;
   }
 
-  std::thread th(queuedFramesConsumer, &framesQueue, pvpar, *pointName);
-
+  std::thread th(queuedFramesConsumer, &framesQueue, pvpar, *pointName, dumpers);
 
   while (queuedFramesConsumerRun) {
     if (cv::waitKey(30) >=0) {
@@ -242,13 +218,12 @@ int main(int argc, char **argv) {
     }
   }
  
-
   th.join();
   sr.stopCapture();
-  //std::cout << "Se detuvo el stream" << std::endl;
   LOG(INFO, "Se detuvo el streamReader");
   pvpar->vpmrEnd();
-  //std::cout << "VPAR parado." << std::endl;
   LOG(INFO, "Se detuvo el motor de reconocimiento VPAR");
+  freeVars(pvpar, logFile, logLevel, pointName, url, chronoObs,
+    moveObs, d2Db, d2File);
   return 0;
 }
