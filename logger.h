@@ -44,11 +44,12 @@ class cLogger {
     std::string __levelStr(int level) {
       std::string str;
       switch (level) {
-        case 1 : str="INFO" ; break;
-        case 2 : str="WARN" ; break;
-        case 4 : str="ERROR" ; break;
-        case 8 : str="DEBUG" ; break;
-        default : str="DEBUG" ; break;
+        case INFO : str="INFO" ; break;
+        case WARN : str="WARN" ; break;
+        case ERROR : str="ERROR" ; break;
+        case DEBUG : str="DEBUG" ; break;
+        case TRACE : str="TRACE" ; break;
+        default : str="INFO" ; break;
       }
       return str;
     }
