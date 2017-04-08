@@ -21,7 +21,6 @@
 #define DEFAULT_LOG_FILE "/var/log/activeco.log"
 
 extern std::unordered_map<std::string, int> logLevelToSwitch;
-
 class cLogger {
   private:
     
@@ -125,6 +124,8 @@ class cLogger {
 };
 
 #define INIT_LOOGER cLogger logger;
-#define ENABLE_LOGGER extern cLogger logger;
+
+extern cLogger logger;
 #define LOG(int, ...) logger.log(int, __VA_ARGS__);
+
 #endif

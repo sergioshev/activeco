@@ -3,8 +3,6 @@
 #include "logger.h"
 #include "observers.h"
 
-ENABLE_LOGGER
-
 //cronoObserver
 
 void cChronoObserver::__start() {

@@ -4,8 +4,6 @@
 
 #include "logger.h"
 
-ENABLE_LOGGER
-
 cvStreamReader::cvStreamReader(
   std::string url,
   cbFrameReady cb) {

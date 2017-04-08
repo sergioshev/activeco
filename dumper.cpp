@@ -3,8 +3,6 @@
 #include <ctime>
 #include <opencv2/imgproc/imgproc.hpp>
 
-ENABLE_LOGGER
-
 dumper2Db::dumper2Db(std::string cDbName, std::string cHost, std::string cPort) {
   this->dbName = cDbName;
   this->host = cHost;
