@@ -12,7 +12,8 @@ typedef struct{
 
 class dumper {
   public:
-    virtual void dump(detectionData data)=0;  
+    virtual void dump(detectionData data)=0;
+    virtual ~dumper() {};
 };
 
 
