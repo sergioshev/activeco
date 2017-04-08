@@ -117,12 +117,12 @@ void cMoveObserver::notify(cv::Mat frame) {
     for (y = 1; y <= h; y++) {
       pic = frame.at<cv::Vec3b>(j+y, i+x); 
       promR+=pic.val[0];
-      promG+=pic.val[1];
-      promB+=pic.val[2];
+//      promG+=pic.val[1];
+//      promB+=pic.val[2];
    }
   promR = promR/(w+h);
-  promG = promG/(w+h);
-  promB = promB/(w+h); 
+//  promG = promG/(w+h);
+//  promB = promB/(w+h); 
 
   if (!((promR/lastValueR >= conf) &&
       (promR/lastValueR <= (2-conf)))) {
@@ -131,8 +131,8 @@ void cMoveObserver::notify(cv::Mat frame) {
   }
  
   lastValueR = promR;
-  lastValueG = promG;
-  lastValueB = promB;
+//  lastValueG = promG;
+//  lastValueB = promB;
   
   LOG(TRACE, "{cMoveObserver::notify } Promedio actual=", lastValueR, ";" ,lastValueG, ";",  lastValueB);
 } 
