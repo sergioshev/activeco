@@ -87,4 +87,17 @@ class moveObserverFactory : public abstractFactory {
     void* produce();
 };
 
+class dumper2DbFactory : public abstractFactory {
+  public:
+    dumper2DbFactory(const po::variables_map & evm) : abstractFactory(evm) {};
+    void* produce();
+};
+
+class dumper2FileFactory : public abstractFactory {
+  public:
+    dumper2FileFactory(const po::variables_map & evm) : abstractFactory(evm) {};
+    void* produce();
+};
+
+
 #endif

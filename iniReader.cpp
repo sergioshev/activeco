@@ -2,6 +2,7 @@
 #include "iniReader.h"
 #include "logger.h"
 #include "observers.h"
+#include "dumper.h"
 
 void iniReader::buildStructureDescription() {
   this->piniStructureDescription = new(po::options_description);
@@ -43,7 +44,7 @@ void iniReader::buildStructureDescription() {
       "nombre de la base de datos")
     ("dumper2Db.dbIp", po::value<std::string>(),
       "ip del servidor de la base de datos")
-    ("dumper2Db.dbPort", po::value<int>(),
+    ("dumper2Db.dbPort", po::value<std::string>(),
       "puerto del servidor de la base de datos")
     ("dumper2File.fsPath", po::value<std::string>(),
       "directorio donde almacenar los frames")
@@ -213,7 +214,6 @@ void* chronoObserverFactory::produce() {
   return pobs;
 }
 
-
 void* moveObserverFactory::produce() {
   cMoveObserver* pobs=NULL;
   const po::variables_map & vm = this->vm;
@@ -243,3 +243,56 @@ void* moveObserverFactory::produce() {
   pobs = new cMoveObserver(pointX, pointY, width, height);
   return pobs;
 }
+
+void* dumper2DbFactory::produce() {
+  dumper2Db* pdumper=NULL;
+  const po::variables_map & vm = this->vm;
+  std::vector<std::string> dumpers = vm["camera.dumpers"].as<std::vector<std::string>>();
+  bool isPresent = false;
+
+  for (const auto & it : dumpers) {
+    if (it.compare(std::string("dumper2Db")) == 0) {
+      isPresent = true;
+      break;
+    }
+  }
+  if (! isPresent) {
+    return NULL;
+  }
+  if (!vm.count("dumper2Db.dbName") ||
+      !vm.count("dumper2Db.dbIp") ||
+      !vm.count("dumper2Db.dbPort")) {
+    return NULL;
+  }
+  std::string dbName = vm["dumper2Db.dbName"].as<std::string>();
+  std::string dbIp = vm["dumper2Db.dbIp"].as<std::string>();
+  std::string dbPort = vm["dumper2Db.dbPort"].as<std::string>();
+
+  pdumper = new dumper2Db(dbName, dbIp, dbPort);
+  return pdumper;
+}
+
+void* dumper2FileFactory::produce() {
+  dumper2File* pdumper=NULL;
+  const po::variables_map & vm = this->vm;
+  std::vector<std::string> dumpers = vm["camera.dumpers"].as<std::vector<std::string>>();
+  bool isPresent = false;
+
+  for (const auto & it : dumpers) {
+    if (it.compare(std::string("dumper2File")) == 0) {
+      isPresent = true;
+      break;
+    }
+  }
+  if (! isPresent) {
+    return NULL;
+  }
+  if (!vm.count("dumper2File.fsPath")) {
+    return NULL;
+  }
+  std::string fsPath = vm["dumper2File.fsPath"].as<std::string>();
+
+  pdumper = new dumper2File(fsPath);
+  return pdumper;
+}
+
