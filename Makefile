@@ -4,7 +4,10 @@ CC_FLAGS=-Wall -std=gnu++11 -I/usr/include/opencv -g
 #CC_FLAGS=-M -Wsign-compare -Wall -fno-inline -std=gnu++11 -I/usr/include/opencv -g
 
 #LD_FLAGS=-ldl -lopencv_imgcodecs -lopencv_highgui -lopencv_videoio -lopencv_core -lpthread -ljpeg 
-LD_FLAGS=-ldl -lboost_program_options -lopencv_imgcodecs -lopencv_imgproc -lopencv_highgui -lopencv_core -lpthread -ljpeg -lpqxx -lavcodec -lavutil -lavformat -lswscale
+
+#LD_FLAGS=-ldl -lboost_program_options -lopencv_imgcodecs -lopencv_imgproc -lopencv_highgui -lopencv_core -lpthread -ljpeg -lpqxx -lavcodec -lavutil -lavformat -lswscale
+
+LD_FLAGS=-ldl -lboost_program_options -lopencv_imgproc -lopencv_highgui -lopencv_core -lpthread -ljpeg -lpqxx -lavcodec -lavutil -lavformat -lswscale
 
 TARGET=activeco
 HEADERS=vpmr videoStreamReader dumper observers iniReader logger
@@ -35,6 +38,7 @@ $(TARGET): $(OBJECTS)
 clean:
 	rm -f *.o
 	rm -f $(TARGET)
+	rm -r .d
 
 $(DEPDIR)/%.d: ;
 
