@@ -166,6 +166,22 @@ typedef struct {
 // results - la estructura con los resultados tResults
 typedef long (*tClbkVpar)(long code, tResults *results);
 
+//emulacion de vpmr
+long vpmrInit(
+  long lWidth,
+  long lHeight,
+  unsigned char * pImageData,
+  bool bFlip = false
+);
+
+long vpmrGetText(char *strResult, long lPlate=0);
+
+float vpmrGetGlobalConfidence(long lPlate=0);
+
+void vpmrEnd(void);
+//fin vpmr
+
+//emulacion de vparmt
 long  vparmtInit(
   tClbkVpar callback, 
   long lCountryCode,

@@ -14,6 +14,9 @@ HEADERS=vpmr videoStreamReader dumper observers iniReader logger
 
 OBJECTS=$(TARGET).o $(HEADERS:%=%.o) 
 
+FAKE_SO=libfakevpar.so
+FAKE_TARGETS=libfakevpar.cpp libfakevpar.h
+
 DEPDIR=.d
 
 $(shell mkdir -p $(DEPDIR) > /dev/null)
@@ -27,6 +30,11 @@ DEPFLAGS=-MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 %.o : %.cpp $(DEPDIR)/%.d
 	$(GCC) $(DEPFLAGS) -c $(CC_FLAGS) $< -o $@
 	mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d
+
+.phony: fakelib
+fakelib: $(FAKE_TARGETS)
+	$(GCC) -fPIC -shared libfakevpar.cpp -o $(FAKE_SO)
+	install $(FAKE_SO) /usr/lib
 
 .phony: all
 all: $(TARGET)
