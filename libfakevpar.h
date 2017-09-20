@@ -167,16 +167,28 @@ typedef struct {
 typedef long (*tClbkVpar)(long code, tResults *results);
 
 //emulacion de vpmr
+float globalConfidence = 0;
+std::string plateFromFile;
+int confidenceFromFile = 0;
+int confidenceGenerated = 0;
+
 long vpmrInit(
   long lWidth,
   long lHeight,
   unsigned char * pImageData,
-  bool bFlip = false
+  bool bFlip
 );
 
-long vpmrGetText(char *strResult, long lPlate=0);
+long vpmrReadRGB24(long lWidth,
+  long lHeight,
+  unsigned char * pbImageData,
+  bool bFlip);
 
-float vpmrGetGlobalConfidence(long lPlate=0);
+long vpmrGetNumberOfPlates(void);
+
+long vpmrGetText(char *strResult, long lPlate);
+
+float vpmrGetGlobalConfidence(long lPlate);
 
 void vpmrEnd(void);
 //fin vpmr

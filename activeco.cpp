@@ -42,9 +42,10 @@ void queuedFramesConsumer(cThreadSafeQueue<cv::Mat>* queue, clibVpar* pvpar, std
 
   LOG(INFO, "{queuedFramesConsumer} Se lanza el consumidor de frames");
   while (queuedFramesConsumerRun) {
+    std::cout << "Antes del metodo pop" << std::endl;
     queue->pop(frame);
     LOG(DEBUG, "{queuedFramesConsumer} Se recibe el frame desde la cola ", frame.cols, "x", frame.rows);
-    //cv::imshow("TEST", frame);
+    cv::imshow("TEST", frame);
     ddata.frame = frame;
     //TODO agregar cuando se configure el INI, aqui para guardar frame de la cola de deteccion (movimiento o chrono)
     res = pvpar->vpmrReadRGB24(frame.cols, frame.rows, frame.ptr(), false);
@@ -198,15 +199,17 @@ int main(int argc, char **argv) {
   cvStreamReader sr(*url, frameReadyCallback);
   sr.setUserPointer(&frameDispatcher);
 
-  //cv::namedWindow("TEST", CV_WINDOW_AUTOSIZE); 
+  cv::namedWindow("TEST", CV_WINDOW_AUTOSIZE); 
   LOG(INFO, "Iniciando la captura de frames desde streamReader");
   try {
     sr.startCapture();
   } catch (std::exception e) {
     LOG(ERROR, "Error iniciando la lectura ");
+    pvpar->vpmrEnd();
+    LOG(INFO, "Se detuvo el motor de reconocimiento VPAR");
     freeVars(pvpar, logFile, logLevel, pointName, url, chronoObs,
       moveObs, d2Db, d2File);
-    return 1;
+   return 1;
   }
 
   std::thread th(queuedFramesConsumer, &framesQueue, pvpar, *pointName, dumpers);
@@ -215,6 +218,8 @@ int main(int argc, char **argv) {
     if (cv::waitKey(30) >=0) {
       queuedFramesConsumerRun = 0;
       sr.stopCapture();
+  //    cv::Mat emptyFrame;
+  //    framesQueue.push(emptyFrame);
     }
   }
  

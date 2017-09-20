@@ -53,7 +53,7 @@ template<class T>
 void cThreadSafeQueue<T>::push(T const& elem) {
   std::unique_lock<std::mutex> lockVar(this->__mutex);
   if (this->__queue.size() < MAX_QUEUE_LEN) {
-    this->__queue.push(elem); 
+    this->__queue.push(elem);
   }
   lockVar.unlock();
   this->__queueEmpty.notify_all();
@@ -77,6 +77,8 @@ void cThreadSafeQueue<T>::pop(T& elem) {
   }
   elem = this->__queue.front();
   this->__queue.pop();
+  lockVar.unlock();
+  this->__queueEmpty.notify_all();
 //  usleep(4000*1000);
 }
 

@@ -4,6 +4,10 @@
 
 #include "logger.h"
 
+#ifdef SIMULATE_CAM
+#include <opencv2/opencv.hpp>
+#endif
+
 cvStreamReader::cvStreamReader(
   std::string url,
   cbFrameReady cb) {
@@ -31,7 +35,9 @@ int cvStreamReader::__blokingFunctionCallback(void* p) {
 }
 
 void cvStreamReader::__pollFrames() {
+  cv::Mat *frame;
   std::chrono::time_point<std::chrono::system_clock> start, end;
+#ifndef SIMULATE_CAM
   AVFormatContext *formatCtx = NULL;
   AVCodecContext *codecCtx = NULL;
   AVCodecContext *codecCopyCtx = NULL;
@@ -46,7 +52,6 @@ void cvStreamReader::__pollFrames() {
   int videoStreamIndex = -1;
   int failCount = 0;
   uint8_t *buffer = NULL;
-  cv::Mat *frame;
 
   res = avformat_open_input(&formatCtx, (const char *)this->url.c_str(), NULL, NULL);
   if (res != 0) {
@@ -182,6 +187,29 @@ void cvStreamReader::__pollFrames() {
   avcodec_free_context(&codecCopyCtx);
   avcodec_close(codecCtx);
   avformat_close_input(&formatCtx);
+#else
+  LOG(INFO, "{cvStreamReader::__pollFrames} Entrando en modo simulacion");
+  frame = new cv::Mat();
+  *frame = cv::imread("fakeplate.jpg", CV_LOAD_IMAGE_COLOR);
+  if (frame->data) {
+    this->runFlag = 1;
+    start = std::chrono::system_clock::now();
+    while (this->runFlag) {
+      end = std::chrono::system_clock::now();
+      if (std::chrono::duration_cast<std::chrono::milliseconds>
+            (end-start).count() >= this->frameFeedPeriod ) {
+        start = end;
+        (this->cb)(*frame, this->userPointer);
+      }
+      std::this_thread::sleep_for(
+        std::chrono::milliseconds(MILLISECONDS_PER_FRAME));
+    }
+    frame->release();
+  } else {
+    LOG(ERROR, "{cvStreamReader::__pollFrames} No puedo abrir el archivo fakeplate.jpg");
+  }
+  delete(frame); 
+#endif
 }
 
 void cvStreamReader::startCapture() {
@@ -190,6 +218,7 @@ void cvStreamReader::startCapture() {
   if (!this->isRunning()) {
     LOG(ERROR, "{cvStreamReader::startCapture} No puedo iniciar la captura de video");
     std::runtime_error e("No puedo iniciar la captura de video");
+    this->th.join();
     throw e;
     //return;
   }

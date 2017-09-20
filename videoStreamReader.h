@@ -30,6 +30,11 @@ extern "C" {
 //al flujo de rtsp.
 #define RECONNECT_PAUSE 5
 
+//Este flag define si se debe simular la entrega de frames
+// para cuando no se disponga de una camara. Se entregara un
+// frame fijo
+#define SIMULATE_CAM
+
 /**
  * Stream reader, clase encargada de recibir el flujo de frames
  *   desde la camara

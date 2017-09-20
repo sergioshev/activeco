@@ -20,14 +20,14 @@ clibVpar::clibVpar() {
     std::cerr << dlerror() << std::endl;
     throw initError;
   }
-  if ((this->pVPMRReadBMP=(fpvpmrReadBMP)dlsym(this->pvpmr,"vpmrReadBMP"))==NULL) {
-    std::cerr << dlerror() << std::endl;
-    throw initError;
-  }
-  if ((this->pVPMRReadJPG=(fpvpmrReadJPG)dlsym(this->pvpmr,"vpmrReadJPG"))==NULL) {
-    std::cerr << dlerror() << std::endl;
-    throw initError;
-  }
+//  if ((this->pVPMRReadBMP=(fpvpmrReadBMP)dlsym(this->pvpmr,"vpmrReadBMP"))==NULL) {
+//    std::cerr << dlerror() << std::endl;
+//    throw initError;
+//  }
+//  if ((this->pVPMRReadJPG=(fpvpmrReadJPG)dlsym(this->pvpmr,"vpmrReadJPG"))==NULL) {
+//    std::cerr << dlerror() << std::endl;
+//    throw initError;
+//  }
   if ((this->pVPMRReadRGB24=(fpvpmrReadRGB24)dlsym(this->pvpmr,"vpmrReadRGB24"))==NULL) {
     std::cerr << dlerror() << std::endl;
     throw initError;
@@ -47,16 +47,16 @@ clibVpar::clibVpar() {
     std::cerr << dlerror() << std::endl;
     throw initError;
   }
-  if ((this->pVPMRGetProcessingTime=(fpvpmrGetProcessingTime)
-         dlsym(this->pvpmr,"vpmrGetProcessingTime"))==NULL) {
-    std::cerr << dlerror() << std::endl;
-    throw initError;
-  }
-  if ((this->pVPMRSetTimeOut=(fpvpmrSetTimeOut)
-         dlsym(this->pvpmr,"vpmrSetTimeOut"))==NULL) {
-    std::cerr << dlerror() << std::endl;
-    throw initError;
-  }
+//  if ((this->pVPMRGetProcessingTime=(fpvpmrGetProcessingTime)
+//         dlsym(this->pvpmr,"vpmrGetProcessingTime"))==NULL) {
+//    std::cerr << dlerror() << std::endl;
+//    throw initError;
+//  }
+//  if ((this->pVPMRSetTimeOut=(fpvpmrSetTimeOut)
+//         dlsym(this->pvpmr,"vpmrSetTimeOut"))==NULL) {
+//    std::cerr << dlerror() << std::endl;
+//    throw initError;
+//  }
   this->pathToMap = new char[sizeof(PATH_TO_PACK)];
   strcpy(this->pathToMap,PATH_TO_PACK);
 }
@@ -83,10 +83,12 @@ void clibVpar::vpmrEnd(void) {
   (this->pVPMREnd)();
 }
 
+/*
 long clibVpar::vpmrReadJPG(char* filename) {
   long res = (this->pVPMRReadJPG)(filename);
   return res;
 }
+*/
 
 long clibVpar::vpmrReadRGB24(long lWidth, long lHeight, unsigned char* pbImageData, bool bFlip) {
   long res = (this->pVPMRReadRGB24)(lWidth, lHeight, pbImageData, bFlip);

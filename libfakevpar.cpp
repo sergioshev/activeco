@@ -14,6 +14,61 @@ extern "C" {
 tClbkVpar vparCallback;
 bool trace;
 
+
+long vpmrInit(
+  long lWidth,
+  long lHeight,
+  unsigned char * pImageData,
+  bool bFlip) {
+  std::cout << "fakevpmr: init" << std::endl;
+  return 1;
+}
+
+long vpmrReadRGB24(long lWidth, long lHeight, unsigned char * pbImageData,
+  bool bFlip) {
+  std::ifstream infile("fakeplate.txt");
+  std::string line;
+  
+  if (std::getline(infile, line)) {
+    std::istringstream iss(line);
+    iss >> confidenceFromFile >> plateFromFile;
+    confidenceGenerated = rand() % 100 + 1;
+    std::cout << "fakevpmr:readRGB exito generado=" << confidenceGenerated << " exito del archivo=" << confidenceFromFile << " patente="<< plateFromFile << std::endl;
+    return 1;
+  }
+  return 0;
+}
+
+long vpmrGetNumberOfPlates(void) {
+  if (confidenceGenerated < confidenceFromFile) {
+    return 1;
+  }
+  return 0;
+}
+
+long vpmrGetText(char * strResult, long lPlate) {
+  if (confidenceGenerated < confidenceFromFile) {
+    strResult = new char[plateFromFile.length()+1];
+    strcpy(strResult, plateFromFile.c_str());
+    std::cout << "fakevpmr:getText patente establecida=" << plateFromFile << std::endl;
+  }
+  return 1;
+}
+
+float vpmrGetGlobalConfidence(long lPlate) {
+  globalConfidence = 0.31;
+  if (confidenceGenerated < confidenceFromFile) {
+    globalConfidence = 0.99;
+  }
+  std::cout << "fakevpmr:getGlobalConfidence confidence=" << globalConfidence << std::endl;
+  return globalConfidence;
+}
+
+void vpmrEnd(void) {
+  std::cout << "fakevpmr:end termiando el motor" << std::endl;
+  return;
+}
+
 //null no plate, string - plate
 char* recognizePlate(char *strFilename) {
   std::ifstream infile(strFilename);

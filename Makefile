@@ -31,11 +31,6 @@ DEPFLAGS=-MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 	$(GCC) $(DEPFLAGS) -c $(CC_FLAGS) $< -o $@
 	mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d
 
-.phony: fakelib
-fakelib: $(FAKE_TARGETS)
-	$(GCC) -fPIC -shared libfakevpar.cpp -o $(FAKE_SO)
-	install $(FAKE_SO) /usr/lib
-
 .phony: all
 all: $(TARGET)
 
@@ -47,6 +42,12 @@ clean:
 	rm -f *.o
 	rm -f $(TARGET)
 	rm -r .d
+
+.phony: fakelib
+fakelib: $(FAKE_TARGETS)
+	$(GCC) -fpermissive -fPIC -shared libfakevpar.cpp -o $(FAKE_SO)
+	install $(FAKE_SO) /usr/lib
+
 
 $(DEPDIR)/%.d: ;
 
